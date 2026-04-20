@@ -18,10 +18,17 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Login successful:', result.user.uid);
       navigate('/');
     } catch (err: any) {
-      setError(err.message);
+      console.error('Login error:', err);
+      const errorMsg = err.code === 'auth/user-not-found' 
+        ? 'User not found. Please register first.'
+        : err.code === 'auth/wrong-password'
+        ? 'Incorrect password.'
+        : err.message;
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

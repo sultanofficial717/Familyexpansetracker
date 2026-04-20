@@ -16,6 +16,25 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!familyName.trim()) {
+      setError('Family name is required');
+      return;
+    }
+    if (!income || Number(income) <= 0) {
+      setError('Monthly income must be greater than 0');
+      return;
+    }
+    if (!email.includes('@')) {
+      setError('Please enter a valid email');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -47,9 +66,16 @@ export default function RegisterPage() {
         role: 'admin'
       });
 
+      console.log('Registration successful:', uid);
       navigate('/');
     } catch (err: any) {
-      setError(err.message);
+      console.error('Registration error:', err);
+      const errorMsg = err.code === 'auth/email-already-in-use'
+        ? 'Email already registered. Please login instead.'
+        : err.code === 'auth/weak-password'
+        ? 'Password is too weak. Use at least 6 characters.'
+        : err.message;
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -80,7 +106,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Monthly Resource Target ($)</label>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Monthly Resource Target (PKR)</label>
             <input
               type="number"
               value={income}

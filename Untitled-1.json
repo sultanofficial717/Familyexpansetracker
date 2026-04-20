@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "env": ["GEMINI_API_KEY"]
+}
+
+GEMINI_API_KEY=your_key
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_PROJECT_ID=...

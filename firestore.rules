@@ -2,11 +2,6 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     // Helper functions
     function isSignedIn() {
       return request.auth != null;
@@ -20,29 +15,29 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
     }
 
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    // User lookup mapping
+    // User lookup mapping (required for registering new users)
     match /users/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
       allow create: if isSignedIn() && request.auth.uid == uid;
       allow update: if isSignedIn() && request.auth.uid == uid;
+      allow delete: if false;
     }
 
     // Family Rules
     match /families/{familyId} {
       allow get: if isSignedIn();
-      allow list: if false; // Only individual lookups or through membership
+      allow list: if false;
+      // Allow user to create a family with themselves as admin
       allow create: if isSignedIn() && request.resource.data.adminUid == request.auth.uid;
       allow update: if isFamilyAdmin(familyId) && request.resource.data.adminUid == request.auth.uid;
-      allow delete: if false; // For now delete is restricted
+      allow delete: if false;
 
       // Members Subcollection
       match /members/{memberId} {
         allow read: if isMemberOfFamily(familyId) || isFamilyAdmin(familyId);
-        allow write: if isFamilyAdmin(familyId);
+        allow create: if isFamilyAdmin(familyId);
+        allow update: if isFamilyAdmin(familyId);
+        allow delete: if isFamilyAdmin(familyId);
       }
 
       // Expenses Subcollection
@@ -50,7 +45,8 @@ service cloud.firestore {
         allow read: if isMemberOfFamily(familyId) || isFamilyAdmin(familyId);
         allow create: if isSignedIn() && (isMemberOfFamily(familyId) || isFamilyAdmin(familyId)) 
                        && request.resource.data.memberId == request.auth.uid;
-        allow update, delete: if isFamilyAdmin(familyId) || (isSignedIn() && resource.data.memberId == request.auth.uid);
+        allow update: if isFamilyAdmin(familyId) || (isSignedIn() && resource.data.memberId == request.auth.uid);
+        allow delete: if isFamilyAdmin(familyId) || (isSignedIn() && resource.data.memberId == request.auth.uid);
       }
 
       // Budgets Subcollection
@@ -58,6 +54,11 @@ service cloud.firestore {
         allow read: if isMemberOfFamily(familyId) || isFamilyAdmin(familyId);
         allow write: if isFamilyAdmin(familyId);
       }
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
