@@ -1,0 +1,11 @@
+{
+  "name": "FamilyLedger",
+  "description": "A responsive family expense tracker with receipt scanning, multi-user support, and budget analytics.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "firebase",
+    "ai_ocr"
+  ]
+}

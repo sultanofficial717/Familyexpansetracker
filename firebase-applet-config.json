@@ -1,0 +1,10 @@
+{
+  "projectId": "gcs-skill",
+  "appId": "1:649716134173:web:199ce5a4713b235f8831f4",
+  "apiKey": "AIzaSyA9ySVD-rMT16lp3L0qDm94vF1fiPRoBDQ",
+  "authDomain": "gcs-skill.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-b07cc0d0-ab59-4d87-bb55-882b43463ac4",
+  "storageBucket": "gcs-skill.firebasestorage.app",
+  "messagingSenderId": "649716134173",
+  "measurementId": ""
+}

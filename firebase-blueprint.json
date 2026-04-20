@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "Family": {
+      "title": "Family",
+      "description": "Represents a family group managed by an admin.",
+      "type": "object",
+      "properties": {
+        "adminUid": { "type": "string", "description": "UID of the family head." },
+        "familyName": { "type": "string", "description": "Name of the family." },
+        "monthlyIncome": { "type": "number", "description": "Total family monthly income." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["adminUid", "familyName", "monthlyIncome"]
+    },
+    "Member": {
+      "title": "Member",
+      "description": "Represents a family member.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "uid": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "member"] },
+        "monthlyPocketMoney": { "type": "number" },
+        "avatarUrl": { "type": "string" }
+      },
+      "required": ["name", "email", "uid", "role", "monthlyPocketMoney"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Represents an individual expense record.",
+      "type": "object",
+      "properties": {
+        "memberId": { "type": "string" },
+        "memberName": { "type": "string" },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "customCategory": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "receiptImageUrl": { "type": "string" },
+        "month": { "type": "string", "description": "YYYY-MM format" },
+        "receiptData": {
+          "type": "object",
+          "properties": {
+            "itemName": { "type": "string" },
+            "price": { "type": "number" },
+            "date": { "type": "string" }
+          }
+        }
+      },
+      "required": ["memberId", "memberName", "amount", "category", "date", "month"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "Monthly budget allocations.",
+      "type": "object",
+      "properties": {
+        "month": { "type": "string" },
+        "totalIncome": { "type": "number" },
+        "memberAllocations": { "type": "object" }
+      },
+      "required": ["month", "totalIncome"]
+    },
+    "UserMap": {
+      "title": "User Map",
+      "description": "Maps a UID to a family and role.",
+      "type": "object",
+      "properties": {
+        "familyId": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["familyId", "role"]
+    }
+  },
+  "firestore": {
+    "users/{uid}": {
+      "schema": "UserMap",
+      "description": "Top level mapping of user to family."
+    },
+    "families/{familyId}": {
+      "schema": "Family",
+      "description": "Core family settings."
+    },
+    "families/{familyId}/members/{memberId}": {
+      "schema": "Member",
+      "description": "Members of the family."
+    },
+    "families/{familyId}/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Expense history."
+    },
+    "families/{familyId}/budgets/{month}": {
+      "schema": "Budget",
+      "description": "Monthly allocations."
+    }
+  }
+}

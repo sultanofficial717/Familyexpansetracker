@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isFamilyAdmin(familyId) {
+      return isSignedIn() && get(/databases/$(database)/documents/families/$(familyId)).data.adminUid == request.auth.uid;
+    }
+
+    function isMemberOfFamily(familyId) {
+      return isSignedIn() && exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // User lookup mapping
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Family Rules
+    match /families/{familyId} {
+      allow get: if isSignedIn();
+      allow list: if false; // Only individual lookups or through membership
+      allow create: if isSignedIn() && request.resource.data.adminUid == request.auth.uid;
+      allow update: if isFamilyAdmin(familyId) && request.resource.data.adminUid == request.auth.uid;
+      allow delete: if false; // For now delete is restricted
+
+      // Members Subcollection
+      match /members/{memberId} {
+        allow read: if isMemberOfFamily(familyId) || isFamilyAdmin(familyId);
+        allow write: if isFamilyAdmin(familyId);
+      }
+
+      // Expenses Subcollection
+      match /expenses/{expenseId} {
+        allow read: if isMemberOfFamily(familyId) || isFamilyAdmin(familyId);
+        allow create: if isSignedIn() && (isMemberOfFamily(familyId) || isFamilyAdmin(familyId)) 
+                       && request.resource.data.memberId == request.auth.uid;
+        allow update, delete: if isFamilyAdmin(familyId) || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      }
+
+      // Budgets Subcollection
+      match /budgets/{month} {
+        allow read: if isMemberOfFamily(familyId) || isFamilyAdmin(familyId);
+        allow write: if isFamilyAdmin(familyId);
+      }
+    }
+  }
+}
